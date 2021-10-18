@@ -42,7 +42,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
       super.initState();
-      _retrieveApps();
+
+      _registerAudiomixerCallbacks();
+      _retrieveControls();
   }
 
   void _retrieveApps() {
@@ -50,6 +52,20 @@ class _MyHomePageState extends State<MyHomePage> {
       runnablesFuture.then((List<AfmApp> apps) => setState(() {
           _apps = apps;
       }));
+  }
+
+
+  void _retrieveControls() {
+      Future<List<AfmMixerControl>> runnablesFuture = promiseToFuture<List<AfmMixerControl>>(AGLJS.audiomixer.list_controls());
+      runnablesFuture.then((List<AfmMixerControl> controls) =>  _resetVolume(controls));
+  }
+
+  void _resetVolume(List<AfmMixerControl> controls) {
+      controls.forEach((mixerControl) => AGLJS.audiomixer.set_volume(mixerControl.control, 0));
+  }
+
+  void _registerAudiomixerCallbacks() {
+      AGLJS.audiomixer.on_volume_changed(allowInterop((data) => _retrieveApps()));
   }
 
   void _processAppList(List<AfmApp> apps) {
